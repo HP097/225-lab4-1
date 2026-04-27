@@ -20,15 +20,16 @@ pipeline {
 
         stage('Unit Test') {
             steps {
-                sh 'pip install pytest'
-                sh 'pytest test_app.py'
+                # Use 'python3 -m'
+                sh 'python3 -m pip install pytest'
+                sh 'python3 -m pytest test_app.py'
             }
         }
 
         stage('Security Scan') {
             steps {
-                sh 'pip install bandit'
-                sh 'bandit -r main.py'
+                sh 'python3 -m pip install bandit'
+                sh 'python3 -m bandit -r main.py'
             }
         }
 
