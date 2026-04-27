@@ -19,7 +19,7 @@ else:
         print(f"FAILURE: I cannot write to /nfs. Error: {e}")
 
 def get_db():
-    db = sqlite3.connect(DATABASE)
+    db = sqlite3.connect(DATABASE, uri=True)
     db.row_factory = sqlite3.Row  # name-based access to columns
     return db
 
