@@ -1,7 +1,7 @@
 Security & Testing Research:
 
-Bandit: Used to perform static analysis to find common security issues in Python code like hardcoded passwords or shell injections.
+Bandit: I am using Bandit to perform static security analysis. It scans the Python source code for common vulnerabilities like insecure function calls and hardcoded configurations.
 
-Pytest: Used for automated unit testing to verify that the application logic remains sound after every build.
+Pytest: I am using Pytest to automate unit testing. This will make sure that the core logic of the application is verified before deployment.
 
-Input Sanitization: Implementing .strip() on form inputs to prevent basic injection and whitespace errors.
+Input Sanitization: I have modified the Flask application to use `.strip()` on all form inputs. This will prevent trailing whitespace errors and provide a basic layer of data cleaning before database insertion.
