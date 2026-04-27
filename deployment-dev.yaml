@@ -47,6 +47,8 @@ spec:
       containers:
         - name: flask
           image: cithit/pyakurh2:latest   #<------change this!!!!!
+          securityContext:
+            runAsUser: 0  
           ports:
             - containerPort: 5000
           volumeMounts:
