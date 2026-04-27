@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Database file path
-DATABASE = '/srv/nfs/demo.db'
+DATABASE = 'file:/nfs/demo.db?vfs=unix-dotfile'
 
 if not os.path.exists('/nfs'):
     print("CRITICAL ERROR: The /nfs folder does not exist!")
