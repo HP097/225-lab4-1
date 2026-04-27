@@ -77,7 +77,7 @@ def index():
             <title>Contacts</title>
         </head>
         <body>
-            <h2>Add Contact</h2>
+            <h2>Hitesh's Persistent Rolodex</h2>
             <form method="POST" action="{{ url_for('index') }}">
                 <label for="name">Name:</label><br>
                 <input type="text" id="name" name="name" required><br>
