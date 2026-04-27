@@ -20,7 +20,6 @@ pipeline {
 
         stage('Unit Test') {
             steps {
-                # Use 'python3 -m'
                 sh 'python3 -m pip install pytest'
                 sh 'python3 -m pytest test_app.py'
             }
