@@ -7,6 +7,17 @@ app = Flask(__name__)
 # Database file path
 DATABASE = '/srv/nfs/demo.db'
 
+if not os.path.exists('/nfs'):
+    print("CRITICAL ERROR: The /nfs folder does not exist!")
+else:
+    print("SUCCESS: /nfs folder found. Checking write permissions...")
+    try:
+        with open('/nfs/test.txt', 'w') as f:
+            f.write('test')
+        print("SUCCESS: I can write to /nfs!")
+    except Exception as e:
+        print(f"FAILURE: I cannot write to /nfs. Error: {e}")
+
 def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row  # name-based access to columns
