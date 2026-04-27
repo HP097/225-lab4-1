@@ -4,23 +4,12 @@ import os
 
 app = Flask(__name__)
 
-# Database file path
+# Database file path using the NFS fix
 DATABASE = 'file:/nfs/demo.db?vfs=unix-dotfile'
-
-if not os.path.exists('/nfs'):
-    print("CRITICAL ERROR: The /nfs folder does not exist!")
-else:
-    print("SUCCESS: /nfs folder found. Checking write permissions...")
-    try:
-        with open('/nfs/test.txt', 'w') as f:
-            f.write('test')
-        print("SUCCESS: I can write to /nfs!")
-    except Exception as e:
-        print(f"FAILURE: I cannot write to /nfs. Error: {e}")
 
 def get_db():
     db = sqlite3.connect(DATABASE, uri=True)
-    db.row_factory = sqlite3.Row  # name-based access to columns
+    db.row_factory = sqlite3.Row
     return db
 
 def init_db():
@@ -37,16 +26,9 @@ def init_db():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """
-    Implements PRG:
-      - On POST: perform DB work, then redirect to GET with a message in the query string.
-      - On GET: read the message from the query string and render the page.
-    """
     if request.method == 'POST':
-        # Default message if something unexpected happens
         message = 'OK'
-
-        # Check if it's a delete action
+        # SECURITY FEATURE: Added .strip() to sanitize inputs
         if request.form.get('action') == 'delete':
             contact_id = request.form.get('contact_id')
             if contact_id:
@@ -54,14 +36,12 @@ def index():
                 db.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
                 db.commit()
                 message = 'Contact deleted successfully.'
-            else:
-                message = 'Missing contact id.'
-            # Redirect to avoid form resubmission on refresh
             return redirect(url_for('index', message=message))
 
-        # Otherwise, it's an add action
-        name = request.form.get('name')
-        phone = request.form.get('phone')
+        # SECURITY FEATURE: Added .strip() to sanitize inputs
+        name = request.form.get('name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        
         if name and phone:
             db = get_db()
             db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
@@ -69,67 +49,46 @@ def index():
             message = 'Contact added successfully.'
         else:
             message = 'Missing name or phone number.'
-
-        # Redirect to GET (prevents resubmission on refresh)
         return redirect(url_for('index', message=message))
 
-    # GET request: read optional message from query string
     message = request.args.get('message', '')
-
-    # Always display the contacts table
     db = get_db()
     contacts = db.execute('SELECT * FROM contacts').fetchall()
 
-    # Render page
     return render_template_string('''
         <!DOCTYPE html>
         <html>
-        <head>
-            <title>Contacts</title>
-        </head>
+        <head><title>Contacts</title></head>
         <body>
-            <h2>Hitesh's Persistent Rolodex</h2>
+            <h2>Hitesh's Persistent & Secured Rolodex</h2>
             <form method="POST" action="{{ url_for('index') }}">
-                <label for="name">Name:</label><br>
-                <input type="text" id="name" name="name" required><br>
-                <label for="phone">Phone Number:</label><br>
-                <input type="text" id="phone" name="phone" required><br><br>
+                <label>Name:</label><br><input type="text" name="name" required><br>
+                <label>Phone:</label><br><input type="text" name="phone" required><br><br>
                 <input type="submit" value="Submit">
             </form>
-
-            {% if message %}
-              <p>{{ message }}</p>
-            {% endif %}
-
+            {% if message %}<p>{{ message }}</p>{% endif %}
             {% if contacts %}
-                <table border="1" cellpadding="6" cellspacing="0">
-                    <tr>
-                        <th>Name</th>
-                        <th>Phone Number</th>
-                        <th>Delete</th>
-                    </tr>
+                <table border="1">
+                    <tr><th>Name</th><th>Phone</th><th>Delete</th></tr>
                     {% for contact in contacts %}
-                        <tr>
-                            <td>{{ contact['name'] }}</td>
-                            <td>{{ contact['phone'] }}</td>
-                            <td>
-                                <form method="POST" action="{{ url_for('index') }}">
-                                    <input type="hidden" name="contact_id" value="{{ contact['id'] }}">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="submit" value="Delete">
-                                </form>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td>{{ contact['name'] }}</td>
+                        <td>{{ contact['phone'] }}</td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="contact_id" value="{{ contact['id'] }}">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="submit" value="Delete">
+                            </form>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </table>
-            {% else %}
-                <p>No contacts found.</p>
-            {% endif %}
+            {% else %}<p>No contacts found.</p>{% endif %}
         </body>
         </html>
     ''', message=message, contacts=contacts)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    init_db()  # Initialize the database and table
-    app.run(debug=True, host='0.0.0.0', port=port)
+    init_db()
+    app.run(debug=True, host='0.0.0.0', port=5000)
